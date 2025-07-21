@@ -33,7 +33,6 @@
             label1 = new Label();
             wallpaperDownloader = new System.Windows.Forms.Timer(components);
             timer2 = new System.Windows.Forms.Timer(components);
-            todoReader = new System.Windows.Forms.Timer(components);
             LogTextBox = new RichTextBox();
             SuspendLayout();
             // 
@@ -50,11 +49,6 @@
             // 
             wallpaperDownloader.Interval = 60000;
             wallpaperDownloader.Tick += DownLoadBingWallpaper;
-            // 
-            // todoReader
-            // 
-            todoReader.Interval = 10000;
-            todoReader.Tick += TextOnWallpaper;
             // 
             // LogTextBox
             // 
@@ -89,7 +83,6 @@
         private Label label1;
         private System.Windows.Forms.Timer wallpaperDownloader;
         private System.Windows.Forms.Timer timer2;
-        private System.Windows.Forms.Timer todoReader;
         private RichTextBox LogTextBox;
     }
 }
