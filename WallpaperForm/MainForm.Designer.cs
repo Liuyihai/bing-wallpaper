@@ -70,6 +70,7 @@
             Name = "MainForm";
             Text = "Bing壁纸";
             Deactivate += Form1_Deactivate;
+            FormClosing += MainForm_FormClosing;
             Load += MainForm_Load;
             ResumeLayout(false);
             PerformLayout();

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -21,7 +22,7 @@ namespace WallpaperForm
         public MainForm()
         {
             InitializeComponent();
-            
+
             Window_PreLoad();
         }
 
@@ -49,7 +50,7 @@ namespace WallpaperForm
             // 添加右键菜单
             ContextMenuStrip contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add("退出", null, (s, args) => Application.Exit());
-            contextMenu.Items.Add("显示窗口", null, (s,args) => { this.Show(); this.WindowState = FormWindowState.Normal; });
+            contextMenu.Items.Add("显示窗口", null, (s, args) => { this.Show(); this.WindowState = FormWindowState.Normal; });
             icon.ContextMenuStrip = contextMenu;
             // 设置托盘图标的双击事件
             icon.DoubleClick += (s, args) => { this.Show(); this.WindowState = FormWindowState.Normal; };
@@ -63,7 +64,7 @@ namespace WallpaperForm
         {
             if (this.WindowState == FormWindowState.Minimized)
             {
-                this.Hide(); 
+                this.Hide();
                 this.WindowState = FormWindowState.Minimized;
             }
         }
@@ -140,11 +141,24 @@ namespace WallpaperForm
                 //Console.WriteLine("搞定");
                 LogTextBox.AppendText("搞定\n");
             }
-            catch(Exception err)
+            catch (Exception err)
             {
                 LogTextBox.AppendText($"Error: {err.Message}\n");
             }
-            
+
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            this.WindowState = FormWindowState.Minimized;
+            this.Hide();
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            e.Cancel = true;
+            Hide();
+            base.OnClosing(e);
         }
     }
 }
