@@ -9,8 +9,6 @@ namespace WallpaperForm
 {
     public partial class MainForm : Form
     {
-        private static string todoFilePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\todo.txt";
-
         [DllImport("user32.dll", EntryPoint = "SystemParametersInfo")]
         public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
 
@@ -49,8 +47,8 @@ namespace WallpaperForm
             };
             // 添加右键菜单
             ContextMenuStrip contextMenu = new ContextMenuStrip();
-            contextMenu.Items.Add("退出", null, (s, args) => Application.Exit());
             contextMenu.Items.Add("显示窗口", null, (s, args) => { this.Show(); this.WindowState = FormWindowState.Normal; });
+            contextMenu.Items.Add("退出", null, (s, args) => Application.Exit());
             icon.ContextMenuStrip = contextMenu;
             // 设置托盘图标的双击事件
             icon.DoubleClick += (s, args) => { this.Show(); this.WindowState = FormWindowState.Normal; };
@@ -159,6 +157,53 @@ namespace WallpaperForm
             e.Cancel = true;
             Hide();
             base.OnClosing(e);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            tb_addr.Text = "https://bing.img.run/rand_uhd.php";
+            tb_cycle.Text = "1";
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            //check the link in tb_addr,if the link is not empty, then check if the link is valid
+            if (!string.IsNullOrEmpty(tb_addr.Text))
+            {
+                try
+                {
+                    Uri uri = new Uri(tb_addr.Text);
+                    url = uri.ToString();
+                    LogTextBox.AppendText($"链接已更新: {url}\n");
+                }
+                catch (UriFormatException)
+                {
+                    LogTextBox.AppendText("无效的链接格式，请检查输入。\n");
+                }
+            }
+            else
+            {
+                LogTextBox.AppendText("链接不能为空，请输入有效的链接。\n");
+            }
+
+            //check the cycle in tb_cycle,if the cycle is not empty, then check if the cycle is valid
+            if (!string.IsNullOrEmpty(tb_cycle.Text))
+            {
+                if (double.TryParse(tb_cycle.Text, out double cycle) && cycle > 0)
+                {
+                    wallpaperDownloader.Interval = (int)cycle * 60 * 1000; // Convert minutes to milliseconds
+                    LogTextBox.AppendText($"更新周期已设置为: {cycle} 分\n");
+                }
+                else
+                {
+                    LogTextBox.AppendText("无效的周期，请输入一个正整数。\n");
+                }
+            }
+            else
+            {
+                LogTextBox.AppendText("周期不能为空，请输入有效的周期。\n");
+            }
+
         }
     }
 }
