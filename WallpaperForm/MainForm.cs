@@ -12,10 +12,9 @@ namespace WallpaperForm
         [DllImport("user32.dll", EntryPoint = "SystemParametersInfo")]
         public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
 
-        private HttpClient client;
-        private string url = "https://bing.img.run/rand_uhd.php";
+        private string url = "https://api.xsot.cn/bing?jump=true";
 
-        NotifyIcon icon;
+        NotifyIcon icon = new NotifyIcon();
 
         public MainForm()
         {
@@ -26,12 +25,7 @@ namespace WallpaperForm
 
         private void Window_PreLoad()
         {
-            HttpClientHandler handler = new HttpClientHandler();
-            handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
-            client = new HttpClient(handler);
-
             wallpaperDownloader.Enabled = true;
-
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -74,26 +68,32 @@ namespace WallpaperForm
             DownloadWallpaperAsync();
         }
 
-        private async Task DownloadWallpaperAsync()
+        private void DownloadWallpaperAsync()
         {
-            try
+
+            //Console.WriteLine($"正在从{url}下载图片...");
+            LogTextBox.AppendText($"正在从{url}下载图片...\n");
+            string fileName = "Wallpaper.jpeg";
+            fileName = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+
+            ProcessStartInfo startInfo = new ProcessStartInfo()
             {
-                //Console.WriteLine($"正在从{url}下载图片...");
-                LogTextBox.AppendText($"正在从{url}下载图片...\n");
-                string fileName = "Wallpaper.jpeg";
-                fileName = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
-                byte[] imageBytes = await client.GetByteArrayAsync(url);
-                File.WriteAllBytes(fileName, imageBytes);
-                //Console.WriteLine("壁纸保存完毕");
-                LogTextBox.AppendText("壁纸保存完毕\n");
-                RefreshWallpaper();
-            }
-            catch (Exception ex)
+                FileName = "powershell.exe",
+                RedirectStandardInput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+            using (Process? process = Process.Start(startInfo))
             {
-                //Console.WriteLine($"下载图片出错: {ex.Message}");
-                LogTextBox.AppendText($"Error: {ex.Message}\n");
-                //MessageBox.Show($"下载图片出错: {ex.Message}", "错误");
+                process?.StandardInput.WriteLine($"curl -o {fileName} {url} \n" +
+                    $"exit");
+                process?.WaitForExit();
+                process?.Close();
             }
+
+            LogTextBox.AppendText("壁纸保存完毕\n");
+            RefreshWallpaper();
         }
 
         private void RefreshWallpaper()
@@ -102,7 +102,6 @@ namespace WallpaperForm
             {
                 //Console.WriteLine("开始刷新");
                 LogTextBox.AppendText("开始刷新\n");
-                //_ = SystemParametersInfo(20, 0, "Wallpaper.jpeg", 1);
 
                 //copy the file to the TranscodedWallpaper path
                 string transcodedWallpaperPath = @"C:\Users\shliu\AppData\Roaming\Microsoft\Windows\Themes\TranscodedWallpaper";
@@ -111,12 +110,9 @@ namespace WallpaperForm
                     File.Delete(transcodedWallpaperPath);
                 }
                 File.Copy(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Wallpaper.jpeg"), transcodedWallpaperPath);
-                // Set the desktop wallpaper using P/Invoke
+
                 SystemParametersInfo(20, 0, transcodedWallpaperPath, 3);
 
-                /*var process = Process.Start("cmd.exe", "ASSOC .tmp=tmpfile");
-                Thread.Sleep(1000);
-                process.Close();*/
 
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
@@ -126,14 +122,14 @@ namespace WallpaperForm
                     CreateNoWindow = true, // 不创建窗口
                     WindowStyle = ProcessWindowStyle.Hidden // 隐藏窗口
                 };
-                using (Process process = Process.Start(startInfo))
+                using (Process? process = Process.Start(startInfo))
                 {
-                    process.StandardInput.WriteLine("ASSOC .tmp=tmpfile");
-                    process.StandardInput.WriteLine("exit");
-                    process.StandardInput.AutoFlush = true; // 确保输入被刷新
-
-                    process.WaitForExit(); // 等待命令执行完成
-                    process.Close();
+                    process?.StandardInput.WriteLine("ASSOC .tmp=tmpfile");
+                    process?.StandardInput.WriteLine("exit");
+                    //process?.StandardInput.AutoFlush = true; // 确保输入被刷新
+                           
+                    process?.WaitForExit(); // 等待命令执行完成
+                    process?.Close();
                 }
 
                 //Console.WriteLine("搞定");
@@ -161,7 +157,7 @@ namespace WallpaperForm
 
         private void button1_Click(object sender, EventArgs e)
         {
-            tb_addr.Text = "https://bing.img.run/rand_uhd.php";
+            tb_addr.Text = "https://api.xsot.cn/bing?jump=true";
             tb_cycle.Text = "1";
         }
 
@@ -191,7 +187,7 @@ namespace WallpaperForm
             {
                 if (double.TryParse(tb_cycle.Text, out double cycle) && cycle > 0)
                 {
-                    wallpaperDownloader.Interval = (int)cycle * 60 * 1000; // Convert minutes to milliseconds
+                    wallpaperDownloader.Interval = (int)(cycle * 60 * 1000); // Convert minutes to milliseconds
                     LogTextBox.AppendText($"更新周期已设置为: {cycle} 分\n");
                 }
                 else
